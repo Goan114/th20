@@ -1,6 +1,7 @@
 // Platform shell for the upstream eagler-touhou/1 Launcher contract.
 // Game construction, input, timing, rendering, text and sound belong to C++.
 import createModule from './th20-sdl.mjs';
+import {runtimeKeyboardCode} from './directory-keyboard.mjs';
 import {bindOutsideTouches} from './eagler-host.mjs';
 import {normalizeOptions,applyTouchOptions,touchControls,suspendRuntimeAudio,resumeRuntimeAudio,directTouch,ensureSharedFontAlias,installResources as installHostResources,observeMusicWrites,mountManagedData,isSupersededRuntimeError} from './eagler-host.mjs';
 const protocol='eagler-touhou/1',game='th20',query=new URLSearchParams(location.search),canvas=document.querySelector('canvas');
@@ -98,14 +99,6 @@ async function command(message){
  case 'remove':{const path=relativeSave(message.path);Module.FS.unlink(root()+'/'+path);await sync(false);return {};}
  default:throw Error('Unsupported runtime command: '+message.command);
  }
-}
-function runtimeKeyboardCode(message){
- const code=String(message.code||'');if(code&&code!=='Unidentified')return code;
- const key=String(message.key||'').toLowerCase(),location=Number(message.location)||0;
- const byKey={z:'KeyZ',x:'KeyX',shift:location===2?'ShiftRight':'ShiftLeft',escape:'Escape',esc:'Escape',arrowup:'ArrowUp',arrowdown:'ArrowDown',arrowleft:'ArrowLeft',arrowright:'ArrowRight',control:location===2?'ControlRight':'ControlLeft',q:'KeyQ',s:'KeyS',home:'Home',enter:location===3?'NumpadEnter':'Enter',d:'KeyD',r:'KeyR',tab:'Tab',backspace:'Backspace'};
- if(byKey[key])return byKey[key];if(/^f(?:[1-7]|12)$/.test(key))return key.toUpperCase();
- const keyCode=Number(message.keyCode)||0,byCode={8:'Backspace',9:'Tab',13:location===3?'NumpadEnter':'Enter',16:location===2?'ShiftRight':'ShiftLeft',17:location===2?'ControlRight':'ControlLeft',27:'Escape',36:'Home',37:'ArrowLeft',38:'ArrowUp',39:'ArrowRight',40:'ArrowDown',68:'KeyD',81:'KeyQ',82:'KeyR',83:'KeyS',88:'KeyX',90:'KeyZ',112:'F1',113:'F2',114:'F3',115:'F4',116:'F5',117:'F6',118:'F7',123:'F12'};
- return byCode[keyCode]||'';
 }
 let queue=Promise.resolve();
 window.addEventListener('message',event=>{const m=event.data;if(!validEpoch||event.source!==parent||event.origin!==location.origin||m?.protocol!==protocol||m.game!==game||m.epoch!==epoch||typeof m.command!=='string')return;
